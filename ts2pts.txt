@@ -1,0 +1,49 @@
+TS2PTS : ARIB規格のMPEG-2 TSをPartial TSへ変換する
+
+Partial TSにはSITが必須とされているが、
+放送波にはSITが含まれていないため、
+AV機器での活用に不都合がある場合がある。
+そこでSIT付加の実験を行った。
+
+某スレで需要があったので試作。
+ある程度の動作を確認したところで飽きたので投棄。
+
+
+◎参考資料
+・MPEG-2 Systems(ISO/IEC 13818-1) 等
+・ARIB STD-B10 等
+
+◎確認済事項
+白Friioで取得した極一部のTSで、
+・PCからMurdoc Controllerを用いてIEEE1394経由でBD-HDW22へ転送
+  BD-HDW22で再生、番組情報表示、データ放送視聴、AVC変換
+(・ptsInfoで番組情報表示)
+(・chotBDAVで.rplsに番組情報登録)
+
+◎処理概要
+○TSの解析
+  ・ファイル中央からPATを探し、指定PMTのPID等を取得、
+    SITのPID指定と他のPMTを消去した新PATへ変換
+  ・PMTを探し、DTCP descriptorを追加しConditional Access Descriptorを
+    消去した新PMTへ変換、VIDEO,AUDIO等のPID取得
+  ・NITを探し、TS Information Descriptor等を取得
+  ・TOTを探し、放送時刻取得
+  ・EIT(PID:0x0012)の中から、放送時刻の番組情報を探し、
+    各種Descriptorを取得
+  ・SDTを探し、Service Descriptorを取得
+  ・上記情報からSITを生成
+○Partial TSへ変換
+  ・PAT,PMTは新PAT,PMTへ置換
+  ・SITを適当に挿入
+  ・PMTに含まれるPIDはそのまま出力
+  ・それ以外は廃棄
+
+◎制限事項及びTODO
+・UI全般
+・エラー処理全般
+・188byte TSのみ対応、PAT,PMT,NIT,TOT,EIT,SDTが必要
+・Partial TS Time DescriptorのJST_timeを適当に設定
+・ファイル途中での番組変更未対応
+・各種規格への適合未保証
+  (余り規格書を参考にせず、PC録画のTSとBD rippingのM2TSを比較して、
+   なんとなく合わせただけ)
