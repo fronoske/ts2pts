@@ -1,4 +1,4 @@
-#include "ts2pts.h"
+﻿#include "ts2pts.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -136,7 +136,7 @@ int make_pttd(unsigned char po[],
     // ・開始時刻が番組開始時刻と同じ
     // ・SITが1回/1秒で挿入される
     // と仮定、本当はTOTとPCRから計算すべき
-    static TIME_t nt = {(partial_ts_time_d[0]<<8)|partial_ts_time_d[1], partial_ts_time_d[2],partial_ts_time_d[3],partial_ts_time_d[4]};
+    static TIME_t nt = {(unsigned short)((partial_ts_time_d[0]<<8)|partial_ts_time_d[1]), partial_ts_time_d[2],partial_ts_time_d[3],partial_ts_time_d[4]};
     nt.ss++; 
 
     if ((nt.ss&0xF)==0xA) nt.ss+=6;
@@ -293,7 +293,8 @@ int make_sit(PtsInfo_t &pts_info)
 // write Partial TS
 int write_pts(const char finame[],
               const char foname[],
-              PtsInfo_t &pts_info)
+              PtsInfo_t &pts_info,
+                PtsInfo_t& pts_info_meta)
 {
     FILE *fi=fopen((const char*)finame, "rb");
     FILE *fo=fopen((const char*)foname, "wb");
@@ -331,7 +332,7 @@ int write_pts(const char finame[],
 
     pmt_rlen = sit_rlen = 0;
     pat_cnt = cnt = 0;
-    make_sit(pts_info);
+    make_sit(pts_info_meta);
 
     while (fread(tsbuf, 1, TSPKT_SIZE, fi)==TSPKT_SIZE) {
         TsHdr_t tsh = {bswap32(*(unsigned int*)tsbuf)};
@@ -344,11 +345,11 @@ int write_pts(const char finame[],
                 // 本当は、PCRを見た方が良いはず
                 // JST_timeを出力しないならば適当で良いかも
 #ifdef WRITE_JST
-                make_sit(pts_info); // 全部作り直すのは無駄、JST_timeとCRCのみ更新すれば良い
+                make_sit(pts_info_meta); // 全部作り直すのは無駄、JST_timeとCRCのみ更新すれば良い
 #endif
-                PsiHdr_t hd = {bswap32(*(unsigned int*)(pts_info.sitdata+1))};
+                PsiHdr_t hd = {bswap32(*(unsigned int*)(pts_info_meta.sitdata+1))};
                 sit_rlen = 1+hd.private_section_length+3;
-                psit = pts_info.sitdata;
+                psit = pts_info_meta.sitdata;
                 sit_cnt = 0;
 
                 sit_hd.payload_unit_start_indicator = 1;
