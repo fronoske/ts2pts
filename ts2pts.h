@@ -1,4 +1,4 @@
-#ifndef TS2PTS_H
+﻿#ifndef TS2PTS_H
 #define TS2PTS_H
 
 #include "crc.h"
@@ -61,6 +61,7 @@ int analyze_ts(PtsInfo_t &pts_info,
 
 int write_pts(const char finame[],
               const char foname[],
-              PtsInfo_t &pts_info);
+              PtsInfo_t &pts_info,
+              PtsInfo_t& pts_info_meta);
 
 #endif // TS2PTS_H
